@@ -1,11 +1,12 @@
-#include "app.h"
+#include "./app.h"
 
 App::App(){
 
 }
 
+
+
 int App::init(){
-    //glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit())
 		return 1;
 
@@ -57,6 +58,8 @@ int App::run(){
             ImGui::Text("x^%d * [%.30f, %.30f]",i, output.coeffInt[i].a, output.coeffInt[i].b);
         }
         ImGui::Text("Wynik");
+		ImGui::Text("st = %d", output.st); 
+		ImGui::Text("[%.20f, %.20f]", output.result.a, output.result.b); 
 		
 		ImGui::End(); 
 
@@ -73,6 +76,9 @@ int App::run(){
 			interval = true; 
 			floatPointToInterval = false; 
 
+			fgr = inputInt.b; 
+			fgl = inputInt.a; 
+
 		}
 
 		ImGui::SameLine();
@@ -80,6 +86,8 @@ int App::run(){
 			floatPoint = true; 
 			interval = false; 
 			floatPointToInterval = false; 
+			fgr = input;
+			fgl = input;
 		}
 
 		ImGui::SameLine();
@@ -87,17 +95,13 @@ int App::run(){
 			floatPoint = false; 
 			interval = false; 
 			floatPointToInterval = true; 
+			Interval<double> temp = floatPointToInter(input); 
+			//printf("t: %.30f, %.30f \n", temp.a, temp.b); 
+			fgl = temp.a; 
+			fgr = temp.b; 
 		}
 
 
-		if (interval) {
-			ImGui::Text("Interval input[xl, xr]:");
-			ImGui::SetNextItemWidth(size.x/2-12);
-			ImGui::InputDouble("##x left", &fgl);
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(size.x/2-12);
-			ImGui::InputDouble("##x right", &fgr);
-		}
 		if(floatPoint) {
 			ImGui::Text("Point input:");
 			if (ImGui::InputDouble("x", &input)) {
@@ -109,9 +113,21 @@ int App::run(){
 			ImGui::Text("Point input:");
 			if (ImGui::InputDouble("x", &input)) {
 				Interval<double> temp = floatPointToInter(input); 
-				fgl = temp.a; 
+				
 				fgr = temp.b; 
+				fgl = temp.a; 
 			}
+		}
+
+		if (interval) {
+			ImGui::Text("Interval input[xl, xr]:");
+			ImGui::SetNextItemWidth(size.x/2-12);
+			ImGui::InputDouble("##x left", &inputInt.a);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(size.x/2-12);
+			ImGui::InputDouble("##x right", &inputInt.b);
+			fgr = inputInt.b; 
+			fgl = inputInt.a; 
 		}
 
 
@@ -224,23 +240,34 @@ int App::run(){
 		//TO DO zapisywanie do outputu wyniku 
 		// i zrobi poprawne wypisywanie 
 		// stworzenie funckji NEWTOMETHOD dla przedzialu
-		if(ImGui::Button("Calculate")){
-			newtonMethodOutput toAdd; 
+		if(ImGui::Button("Calculate")){ 
+	
 			this->output.xl = fgl; 
 			this->output.xr = fgr; 
             this->output.eps = eps; 
             this->output.max_itr  = max_itr; 
-            this->output.st = 1; 
-            if(interval || floatPointToInterval)
-			    this->output.coeffInt = coeffInt;
-            else 
+            //this->output.st = 1;
+            if(interval || floatPointToInterval){
+				this->output.coeffInt = coeffInt;
+			}else{ 
                 this->output.coeffInt = {}; 
+			}
 
-            if(floatPoint)
+            if(floatPoint){
                 this->output.coeff = coeffFx; 
-            else
+			}else{
                 this->output.coeff = {}; 
-    
+			}
+
+			if(floatPoint)
+				this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, reverseVec(coeffFx), &this->output.st); 
+		
+			if(floatPointToInterval || interval){
+				printf("newton method interval\n"); 
+				reverseVecInt(coeffInt);
+				//this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, reverseVecInt(coeffInt),&this->output.st);
+			}
+
 		}
 
 		ImGui::End();

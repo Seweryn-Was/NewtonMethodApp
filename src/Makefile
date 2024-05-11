@@ -14,7 +14,7 @@ LINUX_GL_LIBS = -lGL
 
 CXXFLAGS  = -std=c++11 -I$(IMGUI_DIR) -I$(IMGUI_DIR)backends -L/usr/include -L/usr/local/include 
 CXXFLAGS += -lgmp -lmpfr -lboost_filesystem -lboost_system -lboost_program_options
-CXXFLAGS += -g -w -Wall -Wformat
+CXXFLAGS += -w -Wall -Wformat -Wextra -g
 
 ifeq ($(UNAME_S), Linux) #LINUX
 	ECHO_MESSAGE = "Linux"
@@ -37,9 +37,11 @@ all: $(EXE)
 	@echo Build complete for $(ECHO_MESSAGE) 
 	@echo running App...
 	@./$(EXE)
+	
 
 $(EXE): $(OBJS)
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 clean:
-	rm -f $(EXE) $(OBJS)
+
+	#rm -f $(EXE) $(OBJS)

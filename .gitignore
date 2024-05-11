@@ -1,2 +1,6 @@
 *.0 
 *.exe
+
+.vscode
+settings.json
+tasks.json

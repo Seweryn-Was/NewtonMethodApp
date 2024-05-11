@@ -12,13 +12,32 @@ Interval<double> f(Interval<double> x, std::vector<double> coeffArrfx){
 	return toReturn;
 }
 
+Interval<double> f(Interval<double> x, std::vector<Interval<double>> coeffArrfx){
+	Interval<double> toReturn = coeffArrfx[0];
+	for(unsigned int i = 1; i<coeffArrfx.size(); i++){
+		toReturn = toReturn * x;
+		Interval<double> add = coeffArrfx[i];
+		toReturn = toReturn + add;
 
-void NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double> coeffArrfx, int* st){
+	}
+	//std::cout<<"["<<toReturn.a<<" "<<toReturn.b<<"]\n";
+	return toReturn;
+}
+
+
+Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double> coeffArrfx, int* st){
+	//printf("Newton Method call\n"); 
 	if(max_itr<1){
 		*st = 1; // maksymalne iteracje zostaly zle wproawdzone
-		return;
+		return {0.0, 0.0};
 	}
+	
 	int exponent = coeffArrfx.size()-1;
+	if(exponent == 0){
+		*st = 2; 
+		return {0.0, 0.0}; 
+	}
+
 	/*
 	 * 	f(x) = x^3 + 3x^2 - 4x + 2
 	 * 	coeffArrfx = [1, 3, -4, 2]
@@ -32,6 +51,7 @@ void NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<d
 		coeffArrfdx[i] = coeffArrfx[i]*exponent;
 		exponent--;
 	}
+ 
 
 	Interval<double> searchInter = {fgl, fgr};	//search Interval
 	Interval<double> x0Inter = {fgl, fgr};		// xi
@@ -40,16 +60,18 @@ void NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<d
 	Interval<double> fdxInter;					//f'(xi)
 	int numberOfIterations = 0;
 
+
+
 	while(true) {
 		numberOfIterations ++;
 		x0Inter = x1Inter;
 		fdxInter = f(x0Inter, coeffArrfdx);
 		fxInter = f(x0Inter, coeffArrfx);
 		/* xi+1 = xi - (f(xi)/f'(xi)) --> x1Inter = x0Inter - (fxInter/fdxInter)*/
-		if(fdxInter.a==0 ||fdxInter.b==0){
-			std::cout<<"f'(x)==0";
+		if(fdxInter.a * fdxInter.b < 0){
+			//std::cout<<"f'(x)==0";
 			*st=2;
-			std::cout<<"st = "<<*st<<" : w pewnej iteracji uzyskano f'(x) = 0]\n";
+			//std::cout<<"st = "<<*st<<" : w pewnej iteracji uzyskano f'(x) = 0]\n";
 			break;
 		}
 		x1Inter = x0Inter - (fxInter/fdxInter);
@@ -60,16 +82,73 @@ void NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<d
 		 * step >
 		 */
 		if(shouldNewtonMethodEnd(x1Inter, x0Inter, eps)){
-			*st = 0; //zakonczenie programu - poprwane zakonczenie
+			//*st = 0; //zakonczenie programu - poprwane zakonczenie
 			break;
 		}
 		if(numberOfIterations >= max_itr){
 			*st = 3; // osogianieto limit iteracji
-			std::cout<<"st = "<<*st<<" : osiagnieto limit iteracji\n";
+			//std::cout<<"st = "<<*st<<" : osiagnieto limit iteracji\n";
 			break;
 		}
 	}
-	std::cout<<"Koniec Algorytm\nliczba iteracji:"<<numberOfIterations<<"\nprzedial wynikowy: ["<<x1Inter.a<<", "<<x1Inter.b<<"]\n";
+	//std::cout<<"Koniec Algorytm\nliczba iteracji:"<<numberOfIterations<<"\nprzedial wynikowy: ["<<x1Inter.a<<", "<<x1Inter.b<<"]\n";
+	return x1Inter; 
+}
+
+
+Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>> coeffArrfx, int* st){
+	//printf("Newton Method call\n"); 
+	if(max_itr<1){
+		*st = 1; // maksymalne iteracje zostaly zle wproawdzone
+		return {0.0, 0.0};
+	}
+	
+	int exponent = coeffArrfx.size()-1;
+	if(exponent == 0){
+		*st = 2; 
+		return {0.0, 0.0}; 
+	}
+
+	/*
+	 * 	f(x) = x^3 + 3x^2 - 4x + 2
+	 * 	coeffArrfx = [1, 3, -4, 2]
+	 *
+	 *	f'(x) = 3x^2 + 6x - 4 + 0
+	 *	coefArrfdx = [3, 6, 4]
+	 */
+	std::vector<Interval<double>> coeffArrfdx(exponent);
+
+	for(unsigned int i = 0; i<coeffArrfx.size(); i++){
+		coeffArrfdx[i] = coeffArrfx[i]*exponent;
+		printf("%d [%.30f, %.30f]\n", i,coeffArrfdx[i].a, coeffArrfdx[i].b);
+		exponent--;
+	}
+
+	Interval<double> searchInter = {fgl, fgr};	//search Interval
+	Interval<double> x0Inter = {fgl, fgr};		// xi
+	Interval<double> x1Inter = {fgl, fgr}; 		// xi+1
+	Interval<double> fxInter;					//f(xi)
+	Interval<double> fdxInter;					//f'(xi)
+	int numberOfIterations = 0;
+	printf("while\n"); 
+	while(true) {
+		numberOfIterations ++; 
+		x0Inter = x1Inter;
+		fdxInter = f(x0Inter, coeffArrfdx);
+		fxInter = f(x0Inter, coeffArrfx);
+
+		if(fdxInter.a * fdxInter.b < 0){
+			//std::cout<<"f'(x)==0";
+			*st=2;
+			//std::cout<<"st = "<<*st<<" : w pewnej iteracji uzyskano f'(x) = 0]\n";
+			break;
+		}
+		x1Inter = x0Inter - (fxInter/fdxInter); 
+		
+		break;
+	}
+	printf("return \n"); 
+	return x1Inter; 
 }
 
 
@@ -112,4 +191,17 @@ std::string doubleToStringNoZeros(double value) {
 	str.erase(pos + 1, std::string::npos);
 
 	return str;
+}
+
+
+std::vector<double> reverseVec(std::vector<double>& vec){
+	std::vector<double> result = vec; 
+	std::reverse(result.begin(), result.end());
+	return result; 
+}
+
+std::vector<Interval<double>> reverseVecInt(std::vector<Interval<double>>& vec){
+	std::vector<Interval<double>> result = vec; 
+	std::reverse(result.begin(), result.end());
+	return result; 
 }
