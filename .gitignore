@@ -1,6 +1,6 @@
-*.0 
+*.o
 *.exe
-
+*.ini
 .vscode
 settings.json
 tasks.json
