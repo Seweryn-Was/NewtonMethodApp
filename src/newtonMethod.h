@@ -7,8 +7,8 @@
 
 using namespace interval_arithmetic;
 
-Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double> coeffArr, int *st );
-Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>> coeffArr, int *st );
+Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double>& coeffArr, int *st );
+Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>>& coeffArr, int *st );
 
 Interval<double> f(Interval<double> x, std::vector<double> coeffArrfx);
 bool shouldNewtonMethodEnd(Interval<double>x1Inter, Interval<double>x0Inter, double eps);

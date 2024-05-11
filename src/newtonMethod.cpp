@@ -25,7 +25,7 @@ Interval<double> f(Interval<double> x, std::vector<Interval<double>> coeffArrfx)
 }
 
 
-Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double> coeffArrfx, int* st){
+Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double>& coeffArrfx, int* st){
 	//printf("Newton Method call\n"); 
 	if(max_itr<1){
 		*st = 1; // maksymalne iteracje zostaly zle wproawdzone
@@ -33,7 +33,7 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 	}
 	
 	int exponent = coeffArrfx.size()-1;
-	if(exponent == 0){
+	if(exponent <= 0){
 		*st = 2; 
 		return {0.0, 0.0}; 
 	}
@@ -82,7 +82,7 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 		 * step >
 		 */
 		if(shouldNewtonMethodEnd(x1Inter, x0Inter, eps)){
-			//*st = 0; //zakonczenie programu - poprwane zakonczenie
+			*st = 0; //zakonczenie programu - poprwane zakonczenie
 			break;
 		}
 		if(numberOfIterations >= max_itr){
@@ -96,7 +96,7 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 }
 
 
-Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>> coeffArrfx, int* st){
+Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>>& coeffArrfx, int* st){
 	//printf("Newton Method call\n"); 
 	if(max_itr<1){
 		*st = 1; // maksymalne iteracje zostaly zle wproawdzone
@@ -104,7 +104,7 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 	}
 	
 	int exponent = coeffArrfx.size()-1;
-	if(exponent == 0){
+	if(exponent <= 0){
 		*st = 2; 
 		return {0.0, 0.0}; 
 	}
@@ -120,7 +120,7 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 
 	for(unsigned int i = 0; i<coeffArrfx.size(); i++){
 		coeffArrfdx[i] = coeffArrfx[i]*exponent;
-		printf("%d [%.30f, %.30f]\n", i,coeffArrfdx[i].a, coeffArrfdx[i].b);
+		//printf("%d [%.30f, %.30f]\n", i,coeffArrfdx[i].a, coeffArrfdx[i].b);
 		exponent--;
 	}
 
@@ -130,24 +130,37 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 	Interval<double> fxInter;					//f(xi)
 	Interval<double> fdxInter;					//f'(xi)
 	int numberOfIterations = 0;
-	printf("while\n"); 
+	//printf("while\n"); 
 	while(true) {
 		numberOfIterations ++; 
 		x0Inter = x1Inter;
+
 		fdxInter = f(x0Inter, coeffArrfdx);
 		fxInter = f(x0Inter, coeffArrfx);
 
 		if(fdxInter.a * fdxInter.b < 0){
-			//std::cout<<"f'(x)==0";
+			//std::cout<<"f'(x)==0\n";
 			*st=2;
-			//std::cout<<"st = "<<*st<<" : w pewnej iteracji uzyskano f'(x) = 0]\n";
 			break;
 		}
-		x1Inter = x0Inter - (fxInter/fdxInter); 
+		Interval<double> h = (fxInter/fdxInter);
+		x1Inter = x0Inter - h; 
+
+		if(fabs(h.a)<eps || fabs(h.b) <eps){
+			//printf("--->eps %.20f, %.20f\n", h.a, h.b); 
+			*st = 0;
+			break; 
+		}
 		
-		break;
+		if(numberOfIterations > max_itr)
+		{	
+			//printf("max_itr\n");
+			*st = 3; 
+			break;
+		}
+		//printf("%d [%.20f, %.20f]\n", numberOfIterations, x1Inter.a, x1Inter.b); 
 	}
-	printf("return \n"); 
+	
 	return x1Inter; 
 }
 

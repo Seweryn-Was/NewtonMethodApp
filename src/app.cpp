@@ -72,6 +72,7 @@ int App::run(){
 		std::string function; 
 
 		if (ImGui::Checkbox("Interval", &interval)) {
+			//printf("switching to interval\n");
 			floatPoint = false; 
 			interval = true; 
 			floatPointToInterval = false; 
@@ -83,6 +84,7 @@ int App::run(){
 
 		ImGui::SameLine();
 		if (ImGui::Checkbox("float Point", &floatPoint)) {
+			//printf("switching to float point\n");
 			floatPoint = true; 
 			interval = false; 
 			floatPointToInterval = false; 
@@ -92,6 +94,7 @@ int App::run(){
 
 		ImGui::SameLine();
 		if (ImGui::Checkbox("float Point to Interval", &floatPointToInterval)) {
+			//printf("switching float point to interval\n");
 			floatPoint = false; 
 			interval = false; 
 			floatPointToInterval = true; 
@@ -121,10 +124,10 @@ int App::run(){
 
 		if (interval) {
 			ImGui::Text("Interval input[xl, xr]:");
-			ImGui::SetNextItemWidth(size.x/2-12);
+			ImGui::SetNextItemWidth((int)(size.x/2-12));
 			ImGui::InputDouble("##x left", &inputInt.a);
 			ImGui::SameLine();
-			ImGui::SetNextItemWidth(size.x/2-12);
+			ImGui::SetNextItemWidth((int)(size.x/2-12));
 			ImGui::InputDouble("##x right", &inputInt.b);
 			fgr = inputInt.b; 
 			fgl = inputInt.a; 
@@ -167,33 +170,31 @@ int App::run(){
 		}
 		//TO DO 
 		//wypisywanei funkcji dla przdziaw etc
-		function = "W(x)=";
-		if(floatPoint){
-			for (int i = coeffFx.size()-1; i >= 0; i--) {
-				if (coeffFx[i] != 0) 
-				if (coeffFx[i] != 1) {
-					function += doubleToStringNoZeros(coeffFx[i]) + "*x^" + std::to_string(i) + " + ";
-				}
-				else {	
-					function += "x^" + std::to_string(i) + " + ";
-				}
-			}			
-		}else{
-			for (int i = coeffInt.size()-1; i >= 0; i--) {
-				function += "[" + doubleToStringNoZeros(coeffInt[i].a)+", "+doubleToStringNoZeros(coeffInt[i].b) + "]*x^" + std::to_string(i) + " + ";	
-			}
-		}
+		// function = "W(x)=";
+		// if(floatPoint){
+		// 	for (int i = coeffFx.size()-1; i >= 0; i--) {
+		// 		if (coeffFx[i] != 0) 
+		// 		if (coeffFx[i] != 1) {
+		// 			function += doubleToStringNoZeros(coeffFx[i]) + "*x^" + std::to_string(i) + " + ";
+		// 		}
+		// 		else {	
+		// 			function += "x^" + std::to_string(i) + " + ";
+		// 		}
+		// 	}			
+		// }else{
+		// 	for (int i = coeffInt.size()-1; i >= 0; i--) {
+		// 		function += "[" + doubleToStringNoZeros(coeffInt[i].a)+", "+doubleToStringNoZeros(coeffInt[i].b) + "]*x^" + std::to_string(i) + " + ";	
+		// 	}
+		// }
 
 
-		if (coeffFx.size() > 0) {
-			function[function.length() - 2] = ' ';	
-		}
-		else {
-			function += "null"; 
-		}
-
-
-		ImGui::Text(function.c_str()); 
+		// if (coeffFx.size() > 0) {
+		// 	function[function.length() - 2] = ' ';	
+		// }
+		// else {
+		// 	function += "null"; 
+		// }
+		// ImGui::Text(function.c_str()); 
 
 		if(floatPoint){
 			for (int i = 0; i < coeffFx.size(); i++) {
@@ -201,18 +202,19 @@ int App::run(){
                 ImGui::Text(label.c_str());
                 ImGui::SameLine(); 
                 label = "##"+label; 
-                ImGui::SetNextItemWidth(size.x/2-25);
+                ImGui::SetNextItemWidth((int)(size.x/2-25));
 				ImGui::InputDouble(label.c_str(), &coeffFx[i]);
 			}
 		}
 
 		if(floatPointToInterval){
 			for (int i = 0; i < coeffFx.size(); i++) {
+				//printf("%d\n", i); 
 				std::string label = "x^" + std::to_string(i);
                 ImGui::Text(label.c_str());
                 ImGui::SameLine();
                 label = "##"+label; 
-                ImGui::SetNextItemWidth(size.x/2-25);
+                ImGui::SetNextItemWidth((int)(size.x/2-25));
 				ImGui::InputDouble(label.c_str(), &coeffFx[i]);
 				coeffInt[i] = floatPointToInter(coeffFx[i]); 
 			}
@@ -224,7 +226,7 @@ int App::run(){
                 ImGui::Text(label.c_str());
                 ImGui::SameLine();
                 label = "##"+label; 
-                ImGui::SetNextItemWidth(size.x/2-27);
+                ImGui::SetNextItemWidth((int)(size.x/2-27));
 				ImGui::InputDouble(label.c_str(), &coeffInt[i].a);
                 label = label + "sec";
 				ImGui::SameLine(); 
@@ -259,13 +261,18 @@ int App::run(){
                 this->output.coeff = {}; 
 			}
 
-			if(floatPoint)
-				this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, reverseVec(coeffFx), &this->output.st); 
-		
+			if(floatPoint){
+				std::vector<double> tempF = reverseVec(coeffFx); 
+				this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, tempF, &this->output.st); 
+			}
+
 			if(floatPointToInterval || interval){
-				printf("newton method interval\n"); 
-				reverseVecInt(coeffInt);
-				//this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, reverseVecInt(coeffInt),&this->output.st);
+				//printf("newton method interval\n"); 
+				//reverseVecInt(coeffInt);
+				std::vector<Interval<double>> tempF = reverseVecInt(coeffInt);
+
+				this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, tempF,&this->output.st);
+				//printf("END newton method interval\n"); 
 			}
 
 		}
