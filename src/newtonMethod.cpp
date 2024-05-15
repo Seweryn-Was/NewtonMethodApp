@@ -165,6 +165,102 @@ Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, s
 }
 
 
+//double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>>& coeffArrfx, int* st
+Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<double>& coefx, int& st, int& it) {
+    Interval<double> dfatx,xh;
+	Interval<double> v, w;
+
+	int exponent = coefx.size()-1;
+	std::vector<double> coedfx(exponent-1);
+	for(unsigned int i = 0; i< coefx.size()-1; i++){
+		coedfx[i] = coefx[i]*exponent;
+	
+		exponent--;
+	}
+
+	printf("mit = %d\n", mit); 
+    if (mit < 1)
+        st = 1;
+    else {
+        st = 3;
+        it = 0;
+        do {
+            it++;
+            dfatx = f(x, coedfx);
+            if (dfatx.a*dfatx.b <= 0)
+                st = 2;
+            else {
+                xh = x;
+                w = IAbs(xh);
+                x = x - f(x, coefx) / dfatx;
+                v = IAbs(x);
+                if (IntWidth(v) < IntWidth(w))
+                    v = w;
+
+                if (v.a *v.b <=0)
+                    st = 0;
+                else if ((IAbs(x - xh) / v).a <= eps && (IAbs(x - xh) / v).b <= eps)
+                    st = 0;
+            }
+			printf("%d [%.20f, %.20f]\n",it, x.a, x.b);
+        } while ((it >= mit) && (st != 3));
+    }
+
+    if (st == 0 || st == 3) {
+        return x;
+ 	}
+
+    return {0.0, 0.0}; // W przypadku, gdy st nie jest ani 0 ani 3, zwracam 0 dla przykładu
+}
+
+Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Interval<double>>& coefx, int& st, int& it) {
+    Interval<double> dfatx,xh;
+	Interval<double> v, w;
+
+	int exponent = coefx.size()-1;
+	std::vector<Interval<double>> coedfx;
+
+	for(unsigned int i = 0; i<coefx.size(); i++){
+		coedfx[i] = coefx[i]*exponent;
+		exponent--;
+	}
+
+    if (mit < 1)
+        st = 1;
+    else {
+        st = 3;
+        it = 0;
+        do {
+            it++;
+            dfatx = f(x, coedfx);
+            if (dfatx.a*dfatx.b <= 0)
+                st = 2;
+            else {
+                xh = x;
+                w = IAbs(xh);
+                x = x - f(x, coedfx) / dfatx;
+                v = IAbs(x);
+                if (IntWidth(v) < IntWidth(w))
+                    v = w;
+
+                if (v.a *v.b <=0)
+                    st = 0;
+                else if ((IAbs(x - xh) / v).a <= eps || (IAbs(x - xh) / v).b <= eps)
+                    st = 0;
+            }
+
+        } while ((it != mit) && (st != 3));
+    }
+
+    if (st == 0 || st == 3) {
+        return x;
+ 	}
+
+    return {0.0, 0.0}; // W przypadku, gdy st nie jest ani 0 ani 3, zwracam 0 dla przykładu
+}
+
+
+
 bool shouldNewtonMethodEnd(Interval<double>x1Inter, Interval<double>x0Inter, double eps){
 	if(epsilionCondition(eps,x1Inter.a, x0Inter.a) || epsilionCondition(eps,x1Inter.b, x0Inter.b)){
 		return true;

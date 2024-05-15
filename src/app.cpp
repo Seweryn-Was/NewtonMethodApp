@@ -263,7 +263,12 @@ int App::run(){
 
 			if(floatPoint){
 				std::vector<double> tempF = reverseVec(coeffFx); 
-				this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, tempF, &this->output.st); 
+				//this->output.result = NewtonMethod(fgl, fgr, eps, max_itr, tempF, &this->output.st); 
+				int it; 
+				printf("running NEWTON\n"); 
+				this->output.result = Newton({fgl, fgr}, max_itr, eps, tempF, this->output.st, it);
+
+				printf("%d ,ending NEWTON\n",it); 
 			}
 
 			if(floatPointToInterval || interval){
