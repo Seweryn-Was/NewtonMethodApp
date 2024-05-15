@@ -4,18 +4,15 @@
 #include <limits>
 #include <vector>
 
-
 using namespace interval_arithmetic;
 
-Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<double>& coeffArr, int *st );
-Interval<double> NewtonMethod(double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>>& coeffArr, int *st );
-
+Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Interval<double>>& coefx, int& st, int& it);
 Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<double>& coefx, int& st, int& it);
+double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st, int& it);
 
-
+Interval<double> f(Interval<double> x, std::vector<Interval<double>> coeffArrfx);
 Interval<double> f(Interval<double> x, std::vector<double> coeffArrfx);
-bool shouldNewtonMethodEnd(Interval<double>x1Inter, Interval<double>x0Inter, double eps);
-bool epsilionCondition(double eps, double x1, double x0);
+double f(double x, std::vector<double> coeffArrfx);
 
 Interval<double> floatPointToInter(double num); 
 
@@ -25,13 +22,13 @@ std::string doubleToStringNoZeros(double value);
 std::vector<Interval<double>> reverseVecInt(std::vector<Interval<double>>& vec);
 std::vector<double> reverseVec(std::vector<double>& vec);
 
-
 struct newtonMethodOutput { 
 	double xl, xr; 
 	std::vector<double> coeff; 
 	std::vector<Interval<double>> coeffInt; 
 	int st; 
 	int max_itr; 
+	int it; 
 	double eps; 
 	Interval<double> result; 
 };

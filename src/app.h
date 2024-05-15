@@ -15,13 +15,13 @@
 #include"../Interval.h"
 #include "./newtonMethod.h"
 
-
 class App{
 public:
-    App(); 
+	App(); 
     int init(); 
     int run(); 
     int termnate(); 
+	int update(); 
 
 
 private: 
@@ -39,7 +39,5 @@ private:
 	std::vector<Interval<double>> coeffInt = {{1.0, 1.1}}; 
 
 	newtonMethodOutput output; 
-    
 
-}; 
-
+};
