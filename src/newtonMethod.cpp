@@ -33,15 +33,23 @@ double f(double x, std::vector<double> coeffArrfx){
 	return fx;
 }
 
-//double fgl, double fgr, double eps, int max_itr, std::vector<Interval<double>>& coeffArrfx, int* st
 double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st, int& it) {
     double dfatx,xh;
 	double v, w;
-
+	printf("\n######NEWTON: ######\n"); 
 	int exponent = coefx.size()-1;
+
+
+	if(exponent <= 0){
+		st = 2; 
+		printf("expontn %d", exponent); 
+		return 0.0;
+	}
+
 	std::vector<double> coedfx(exponent);
 	for(unsigned int i = 0; i< coefx.size()-1; i++, exponent--){
 		coedfx[i] = coefx[i]*exponent;
+		printf("fdx[%d] = %f, ", coedfx[i]);
 	}
 
     if (mit < 1)
@@ -91,10 +99,16 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<doub
 	Interval<double> v, w;
 
 	int exponent = coefx.size()-1;
+
+	if(exponent <= 0){
+		st = 2; 
+		return {0.0, 0.0};
+	}
+
 	std::vector<double> coedfx(exponent);
 	for(unsigned int i = 0; i< coefx.size()-1; i++){
 		coedfx[i] = coefx[i]*exponent;
-	
+		printf("fdx[%d] = %f, ", coedfx[i]);
 		exponent--;
 	}
 
@@ -149,6 +163,12 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
 	Interval<double> v, w;
 
 	int exponent = coefx.size()-1;
+
+	if(exponent <= 0){
+		st = 2; 
+		return {0.0, 0.0};
+	}
+
 	std::vector<Interval<double>> coedfx(exponent);
 	for(unsigned int i = 0; i< coefx.size()-1; i++){
 		coedfx[i] = coefx[i]*exponent;
@@ -156,7 +176,7 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
 		exponent--;
 	}
 
-	printf("mit = %d\n", mit); 
+	
     if (mit < 1)
         st = 1;
     else {
@@ -189,7 +209,7 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
 					break;
 				}
             }
-			printf("it = %d [%.20f, %.20f]\n",it, x.a, x.b);
+			//printf("it = %d [%.20f, %.20f]\n",it, x.a, x.b);
         }
     }
 

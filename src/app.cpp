@@ -84,7 +84,8 @@ int App::update(){
 	ImGui::Text("Wynik");
 	ImGui::Text("st = %d", output.st); 
 	ImGui::Text("it = %d", output.it); 
-	ImGui::Text("[%.20f, %.20f]", output.result.a, output.result.b); 
+	ImGui::Text("x = [%.20f, %.20f]", output.result.a, output.result.b); 
+	ImGui::Text("width = %.3e", IntWidth(output.result)); 
 	
 	ImGui::End(); 
 
@@ -238,7 +239,8 @@ int App::update(){
 		this->output.xr = fgr; 
 		this->output.eps = eps; 
 		this->output.max_itr  = max_itr; 
-		//this->output.st = 1;
+		this->output.it = 0; 
+
 		if(interval || floatPointToInterval){
 			this->output.coeffInt = coeffInt;
 		}else{ 
@@ -252,13 +254,40 @@ int App::update(){
 		}
 
 		if(floatPoint){
-			std::vector<double> tempF = reverseVec(coeffFx); 
+			std::vector<double> tempF = reverseVec(coeffFx);
+			printf("Dane: "); 
+			for(int i = 0; i<tempF.size(); i++){
+				printf("coefx[%d] = %.20f, ", i, tempF[i]); 
+			} 
+			printf("\nx = [%.20f, %.20f]\n", fgl, fgr);
+			printf("eps = %.3e\n", eps); 
+			printf("NEWTON mit = %d\n", max_itr); 
 			this->output.result = Newton({fgl, fgr}, max_itr, eps, tempF, this->output.st, this->output.it);
+ 
+			printf("Wynik: x = [%.20f, %.20f]\n", output.result.a, output.result.b); 
+			printf("it = %d\n", output.it); 
+			printf("st = %d\n",output.st); 
+			printf("szerokosc = %.3e\n", IntWidth(output.result)); 
+			
+
 		}
 
 		if(floatPointToInterval || interval){
 			std::vector<Interval<double>> tempF = reverseVecInt(coeffInt);
+			printf("Dane: "); 
+			for(int i = 0; i<tempF.size(); i++){
+				printf("coefx[%d] = [%.20f, %.20f], ", i, tempF[i].a, tempF[i].b); 
+			}  
+			printf("\nx = [%.20f, %.20f]\n", fgl, fgr);
+			printf("eps = %.3e\n", eps); 
+			printf("mit = %d\n", max_itr);  
+			
+
 			this->output.result = Newton({fgl, fgr}, max_itr, eps, tempF, this->output.st, this->output.it);
+			printf("Wynik: x = [%.20f, %.20f]\n"); 
+			printf("it = %d\n", output.it); 
+			printf("st = %d\n",output.st); 
+			printf("szerokosc = %.3e\n", IntWidth(output.result));
 		}
 
 	}
