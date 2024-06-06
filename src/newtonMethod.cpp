@@ -34,22 +34,21 @@ double f(double x, std::vector<double> coeffArrfx){
 }
 
 double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st, int& it) {
+
     double dfatx,xh;
 	double v, w;
-	printf("\n######NEWTON: ######\n"); 
+	
 	int exponent = coefx.size()-1;
-
 
 	if(exponent <= 0){
 		st = 2; 
-		printf("expontn %d", exponent); 
+		
 		return 0.0;
 	}
 
 	std::vector<double> coedfx(exponent);
 	for(unsigned int i = 0; i< coefx.size()-1; i++, exponent--){
 		coedfx[i] = coefx[i]*exponent;
-		printf("fdx[%d] = %f, ", coedfx[i]);
 	}
 
     if (mit < 1)
@@ -60,7 +59,6 @@ double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st,
         while ((it < mit) && st ==3){
             it++;
             dfatx = f(x, coedfx); 
-			//printf("fdx = %.5f  ", dfatx); 
             if (dfatx== 0){
                 st = 2;
 				break;
@@ -68,7 +66,7 @@ double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st,
             else {
                 
                 w = std::abs(x);
-				//printf("f(x, coefx) = %.5f ", f(x, coefx));
+				xh = x;
                 x = x - f(x, coefx) / dfatx;
                 v = std::abs(x);
                 if (v < w)
@@ -83,7 +81,7 @@ double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st,
 					break;
 				}
             }
-			printf("x = %.20f\n",x); 
+			 
         }
     }
 
@@ -94,69 +92,6 @@ double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st,
     return 0.0; // W przypadku, gdy st nie jest ani 0 ani 3, zwracam 0 dla przykładu
 }
 
-Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<double>& coefx, int& st, int& it) {
-    Interval<double> dfatx,xh;
-	Interval<double> v, w;
-
-	int exponent = coefx.size()-1;
-
-	if(exponent <= 0){
-		st = 2; 
-		return {0.0, 0.0};
-	}
-
-	std::vector<double> coedfx(exponent);
-	for(unsigned int i = 0; i< coefx.size()-1; i++){
-		coedfx[i] = coefx[i]*exponent;
-		printf("fdx[%d] = %f, ", coedfx[i]);
-		exponent--;
-	}
-
-	printf("mit = %d\n", mit); 
-    if (mit < 1)
-        st = 1;
-    else {
-        st = 3;
-        it = 0;
-        while ((it < mit)){
-            it++;
-            dfatx = f(x, coedfx);
-            if (dfatx.a*dfatx.b <= 0){
-                st = 2;
-				break;
-			}
-            else {
-                xh = x;
-                w = IAbs(xh);
-                x = x - f(x, coefx) / dfatx;
-                v = IAbs(x);
-				Interval<double> temp = v; 
-                if (v.a < w.a)
-                    temp.a = w.a;
-				if (v.b < w.b)
-                    temp.b = w.b;
-
-                if (temp.a * temp.b <=0){
-                    st = 0;
-					break;
-				}
-                else if ((std::abs(x.a - xh.a)/temp.a) <= eps && (std::abs(x.b - xh.b)/temp.b) <= eps){
-                    st = 0;
-					break;
-				}
-            }
-			printf("it = %d [%.20f, %.20f]\n",it, x.a, x.b);
-        }
-    }
-
-    if (st == 0 || st == 3) {
-        return x;
- 	}
-
-    return {0.0, 0.0}; // W przypadku, gdy st nie jest ani 0 ani 3, zwracam 0 dla przykładu
-}
-
-
 
 Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Interval<double>>& coefx, int& st, int& it) {
     Interval<double> dfatx,xh;
@@ -166,6 +101,7 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
 
 	if(exponent <= 0){
 		st = 2; 
+		printf("exponent<=0"); 
 		return {0.0, 0.0};
 	}
 
@@ -187,9 +123,17 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
             dfatx = f(x, coedfx);
             if (dfatx.a*dfatx.b <= 0){
                 st = 2;
+				printf("%f * %f <= 0 ", dfatx.a, dfatx.b);
 				break;
 			}
             else {
+				Interval<double> fx = f(x, coefx); 
+				if(fx.a * fx.b <=0 ){
+					printf("interval has 0 %f, %f\n", fx.a ,fx.b); 
+					st = 0; 
+					break; 
+				}
+
                 xh = x;
                 w = IAbs(xh);
                 x = x - f(x, coefx) / dfatx;
@@ -204,12 +148,12 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
                     st = 0;
 					break;
 				}
-                else if ((std::abs(x.a - xh.a)/temp.a) <= eps && (std::abs(x.b - xh.b)/temp.b) <= eps){
+                else if ((std::abs(x.a - xh.a)) <= eps || (std::abs(x.b - xh.b)) <= eps){
                     st = 0;
 					break;
 				}
             }
-			//printf("it = %d [%.20f, %.20f]\n",it, x.a, x.b);
+			printf("it = %d [%.20f, %.20f]\n",it, x.a, x.b);
         }
     }
 
@@ -217,7 +161,7 @@ Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Inte
         return x;
  	}
 
-    return {0.0, 0.0}; // W przypadku, gdy st nie jest ani 0 ani 3, zwracam 0 dla przykładu
+    return x; // W przypadku, gdy st nie jest ani 0 ani 3, zwracam 0 dla przykładu
 }
 
 Interval<double> floatPointToInter(double num){

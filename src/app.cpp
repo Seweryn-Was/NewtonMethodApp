@@ -6,7 +6,7 @@ App::App(){
 	interval = false; 
 	input = 1.0;
 	eps = 0.001;
-	fgl = 1.0, fgr = 1.0;
+	//fgl = 1.0, fgr = 1.0;
 	inputInt = {1.0, 1.0};
 	max_itr = 1;
 
@@ -72,20 +72,38 @@ int App::update(){
 	ImGui::Text("Output"); 
 
 	ImGui::Text("Dane:");
-	ImGui::Text("[%.20f, %.20f] ", output.xl, output.xr);
+	if(floatPoint){
+		ImGui::Text("x0 = %.20f", output.xl);
+	}
+	else{
+		ImGui::Text("[%.20f, %.20f] ", output.xl, output.xr);
+	}
+	
+	
 	ImGui::Text("eps = %.30f", output.eps);
 	ImGui::Text("max_itr = %d", output.max_itr);
 	for(int i = 0; i<output.coeff.size(); i++){
 		ImGui::Text("x^%d * %.30f",i, output.coeff[i]);
 	}
 	for(int i = 0; i<output.coeffInt.size(); i++){
-		ImGui::Text("x^%d * [%.30f, %.30f]",i, output.coeffInt[i].a, output.coeffInt[i].b);
+		//ImGui::Text("x^%d * [%.40f, %.30f]",i, output.coeffInt[i].a, output.coeffInt[i].b);
+		std::string a, b;  
+		output.coeffInt[i].IEndsToStrings(a, b); 
+		ImGui::Text("x^%d [%s, %s]", i, a.c_str(), b.c_str());
 	}
 	ImGui::Text("Wynik");
 	ImGui::Text("st = %d", output.st); 
 	ImGui::Text("it = %d", output.it); 
-	ImGui::Text("x = [%.20f, %.20f]", output.result.a, output.result.b); 
-	ImGui::Text("width = %.3e", IntWidth(output.result)); 
+
+	if(floatPoint){
+		ImGui::Text("x = %.20f ", output.result.a); 
+
+	}else{
+		std::string a, b;  
+		output.result.IEndsToStrings(a, b); 
+		ImGui::Text("x = [%s, %s]", a.c_str(), b.c_str());
+	}
+
 	
 	ImGui::End(); 
 
@@ -100,10 +118,6 @@ int App::update(){
 		floatPoint = false; 
 		interval = true; 
 		floatPointToInterval = false; 
-
-		fgr = inputInt.b; 
-		fgl = inputInt.a; 
-
 	}
 
 	ImGui::SameLine();
@@ -111,8 +125,6 @@ int App::update(){
 		floatPoint = true; 
 		interval = false; 
 		floatPointToInterval = false; 
-		fgr = input;
-		fgl = input;
 	}
 
 	ImGui::SameLine();
@@ -121,26 +133,23 @@ int App::update(){
 		interval = false; 
 		floatPointToInterval = true; 
 		Interval<double> temp = floatPointToInter(input); 
-		fgl = temp.a; 
-		fgr = temp.b; 
 	}
 
 
-	if(floatPoint) {
+	if(floatPoint || floatPointToInterval) {
 		ImGui::Text("Point input:");
-		if (ImGui::InputDouble("x", &input)) {
-			fgr = input;
-			fgl = input;
-		}
-	}
-	if(floatPointToInterval){
-		ImGui::Text("Point input:");
-		if (ImGui::InputDouble("x", &input)) {
-			Interval<double> temp = floatPointToInter(input); 
-			
-			fgr = temp.b; 
-			fgl = temp.a; 
-		}
+		if(ImGui::InputText("x",inputPointBuffer.data(), BUFFER_SIZE)){
+				std::string t = std::string(inputPointBuffer.data());
+				if(t.length() > 1 || ( t.length() == 1  && t[0] != '-') ) 
+				{	
+					input = LeftRead<double>(std::string(inputPointBuffer.data())); //std::stod(inputPointBuffer.data());
+					inputInt = IntRead<double>(std::string(inputPointBuffer.data())); 
+					
+				}else{
+					input = 0.0; 
+					inputInt = IntRead<double>(std::string("0.0")); 
+				}
+			}
 	}
 
 	if (interval) {
@@ -150,8 +159,7 @@ int App::update(){
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth((int)(size.x/2-12));
 		ImGui::InputDouble("##x right", &inputInt.b);
-		fgr = inputInt.b; 
-		fgl = inputInt.a; 
+	
 	}
 
 
@@ -165,8 +173,7 @@ int App::update(){
 	if (ImGui::InputText("##epsilon", epsilonstr, 100)) {
 		if (epsilonstr[0] != '\0')
 		{
-			//std::cout << std::stod(epsilonstr) << "\n";
-			eps = std::stod(epsilonstr);
+			eps = LeftRead<double>(std::string(&epsilonstr[0])); //std::stod(epsilonstr);
 		}
 		else {
 			epsilonstr[0] = '0';
@@ -177,7 +184,21 @@ int App::update(){
 	ImGui::SameLine();
 	if (ImGui::Button("[+] Add coefficient")) {
 		coeffFx.push_back(1.0);
-		coeffInt.push_back({1.0, 1.1}); 
+		coeffInt.push_back({1.0, 1.1});
+
+		std::string t = ""; 
+
+		inputbuffer.push_back(vector<char>(BUFFER_SIZE));
+		std::copy(t.begin(), t.end(), inputbuffer[inputbuffer.size()-1].begin()); 
+		
+		inputbufferInt.push_back(vector<char>(BUFFER_SIZE));
+		std::copy(t.begin(), t.end(), inputbufferInt[inputbufferInt.size()-1].begin()); 
+
+		t = ""; 
+		inputbufferInt.push_back(vector<char>(BUFFER_SIZE)); 
+		std::copy(t.begin(), t.end(), inputbufferInt[inputbufferInt.size()-1].begin()); 
+
+
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("[-] Delete coefficient")) {
@@ -185,32 +206,31 @@ int App::update(){
 			coeffFx.pop_back();
 		}
 		if (coeffInt.size() > 0) {
-			coeffInt.pop_back();
+			coeffInt.pop_back(); 
+			inputbuffer.pop_back(); 
+			inputbufferInt.pop_back();
 		}
 
 	}
 
-	if(floatPoint){
+	if(floatPoint || floatPointToInterval){
 		for (int i = 0; i < coeffFx.size(); i++) {
 			std::string label = "x^" + std::to_string(i);
 			ImGui::Text(label.c_str());
 			ImGui::SameLine(); 
 			label = "##"+label; 
 			ImGui::SetNextItemWidth((int)(size.x/2-25));
-			ImGui::InputDouble(label.c_str(), &coeffFx[i]);
-		}
-	}
-
-	if(floatPointToInterval){
-		for (int i = 0; i < coeffFx.size(); i++) {
-			//printf("%d\n", i); 
-			std::string label = "x^" + std::to_string(i);
-			ImGui::Text(label.c_str());
-			ImGui::SameLine();
-			label = "##"+label; 
-			ImGui::SetNextItemWidth((int)(size.x/2-25));
-			ImGui::InputDouble(label.c_str(), &coeffFx[i]);
-			coeffInt[i] = floatPointToInter(coeffFx[i]); 
+			if(ImGui::InputText(label.c_str(), inputbuffer[i].data(), BUFFER_SIZE)){
+				std::string t = std::string(inputbuffer[i].data());
+				if(t.length() > 1 || ( t.length() == 1  && t[0] != '-') ) 
+				{	
+					coeffFx[i] = std::stod(inputbuffer[i].data());
+					coeffInt[i] = IntRead<double>(std::string(inputbuffer[i].data())); 
+				}else{
+					coeffFx[i] = 0.0; 
+					coeffInt[i] = IntRead<double>(std::string("0.0")); 
+				}
+			}
 		}
 	}
 
@@ -220,12 +240,31 @@ int App::update(){
 			ImGui::Text(label.c_str());
 			ImGui::SameLine();
 			label = "##"+label; 
-			ImGui::SetNextItemWidth((int)(size.x/2-27));
-			ImGui::InputDouble(label.c_str(), &coeffInt[i].a);
+			ImGui::SetNextItemWidth((int)(size.x/2-25)); 
+			if(ImGui::InputText(label.c_str(), inputbufferInt[i*2].data(), BUFFER_SIZE)){
+				std::string t = std::string(inputbufferInt[i*2].data());
+				printf("x[%d] = %s \n", i*2, t.c_str()); 
+				if(t.length() > 1 || ( t.length() == 1  && t[0] != '-') ) 
+				{	
+					coeffInt[i].a = LeftRead<double>(std::string(inputbufferInt[i*2].data())); 
+				}else{
+					coeffInt[i].a = LeftRead<double>(std::string("0.0")); 
+				}
+			}
+
 			label = label + "sec";
 			ImGui::SameLine(); 
-			ImGui::SetNextItemWidth(size.x/2-27);
-			ImGui::InputDouble(label.c_str(), &coeffInt[i].b);
+			ImGui::SetNextItemWidth((int)(size.x/2-25)); 
+			if(ImGui::InputText(label.c_str(), inputbufferInt[i*2+1].data(), BUFFER_SIZE)){
+				std::string t = std::string(inputbufferInt[i*2+1].data());
+				printf("x[%d] = %s \n", i*2+1, t.c_str());
+				if(t.length() > 1 || ( t.length() == 1  && t[0] != '-') ) 
+				{	
+					coeffInt[i].b = RightRead<double>(std::string(inputbufferInt[i*2+1].data())); 
+				}else{
+					coeffInt[i].b = RightRead<double>(std::string("0.0")); 
+				}
+			}
 		}
 	}
 
@@ -235,11 +274,12 @@ int App::update(){
 
 	if(ImGui::Button("Calculate")){ 
 
-		this->output.xl = fgl; 
-		this->output.xr = fgr; 
+		this->output.xl = inputInt.a; 
+		this->output.xr = inputInt.b; 
 		this->output.eps = eps; 
 		this->output.max_itr  = max_itr; 
 		this->output.it = 0; 
+		double eps1 = eps ;//<1e-15 ? 1e-14 : eps;
 
 		if(interval || floatPointToInterval){
 			this->output.coeffInt = coeffInt;
@@ -255,39 +295,12 @@ int App::update(){
 
 		if(floatPoint){
 			std::vector<double> tempF = reverseVec(coeffFx);
-			printf("Dane: "); 
-			for(int i = 0; i<tempF.size(); i++){
-				printf("coefx[%d] = %.20f, ", i, tempF[i]); 
-			} 
-			printf("\nx = [%.20f, %.20f]\n", fgl, fgr);
-			printf("eps = %.3e\n", eps); 
-			printf("NEWTON mit = %d\n", max_itr); 
-			this->output.result = Newton({fgl, fgr}, max_itr, eps, tempF, this->output.st, this->output.it);
- 
-			printf("Wynik: x = [%.20f, %.20f]\n", output.result.a, output.result.b); 
-			printf("it = %d\n", output.it); 
-			printf("st = %d\n",output.st); 
-			printf("szerokosc = %.3e\n", IntWidth(output.result)); 
-			
-
+			this->output.result.a = Newton(input, max_itr, eps1, tempF, this->output.st, this->output.it);
 		}
 
 		if(floatPointToInterval || interval){
 			std::vector<Interval<double>> tempF = reverseVecInt(coeffInt);
-			printf("Dane: "); 
-			for(int i = 0; i<tempF.size(); i++){
-				printf("coefx[%d] = [%.20f, %.20f], ", i, tempF[i].a, tempF[i].b); 
-			}  
-			printf("\nx = [%.20f, %.20f]\n", fgl, fgr);
-			printf("eps = %.3e\n", eps); 
-			printf("mit = %d\n", max_itr);  
-			
-
-			this->output.result = Newton({fgl, fgr}, max_itr, eps, tempF, this->output.st, this->output.it);
-			printf("Wynik: x = [%.20f, %.20f]\n"); 
-			printf("it = %d\n", output.it); 
-			printf("st = %d\n",output.st); 
-			printf("szerokosc = %.3e\n", IntWidth(output.result));
+			this->output.result = Newton(inputInt, max_itr, eps1, tempF, this->output.st, this->output.it);
 		}
 
 	}
