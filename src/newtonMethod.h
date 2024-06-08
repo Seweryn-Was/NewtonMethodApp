@@ -9,6 +9,9 @@ using namespace interval_arithmetic;
 Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<Interval<double>>& coefx, int& st, int& it);
 Interval<double> Newton(Interval<double> x, int mit, double eps,std::vector<double>& coefx, int& st, int& it);
 double Newton(double x, int mit, double eps,std::vector<double>& coefx, int& st, int& it);
+double NewtonMPFR(double x, int mit, double eps,std::vector<double>& coefx, int& st, int& it);
+
+
 
 Interval<double> f(Interval<double> x, std::vector<Interval<double>> coeffArrfx);
 Interval<double> f(Interval<double> x, std::vector<double> coeffArrfx);
